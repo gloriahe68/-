@@ -10,28 +10,43 @@
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --flashcard: #e67e22; --bg: #f4f7f6; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #333; }
-        .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 580px; display: flex; flex-direction: column; }
+        
+        /* 卡片主容器 */
+        .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 600px; display: flex; flex-direction: column; box-sizing: border-box; }
+        
+        /* 视图容器通用样式：确保所有界面都是垂直排列 */
+        #input-view, #quiz-view, #flash-view, #result-view, #mistake-view { 
+            display: none; 
+            flex-direction: column; 
+            width: 100%;
+            height: 100%;
+        }
+
         .home-btn { position: absolute; top: 20px; right: 20px; background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #666; transition: 0.2s; font-weight: 500; z-index: 10; }
         h2 { color: var(--primary); margin: 0 0 5px 0; font-weight: 700; }
         .mode-tag { font-size: 12px; color: #95a5a6; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
         textarea { width: 100%; height: 160px; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 16px; box-sizing: border-box; resize: none; margin-bottom: 5px; transition: 0.3s; background: #fafafa; }
         textarea:focus { border-color: var(--accent); background: #fff; outline: none; }
+        
         .fr-keyboard { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee; }
         .kb-btn { background: white; border: 1px solid #ddd; border-radius: 6px; width: 36px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; font-weight: 500; transition: 0.1s; }
         .kb-btn:active { background: var(--accent); color: white; }
+
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn-full { grid-column: span 2; }
+        .btn-full { grid-column: span 2; width: 100%; }
         .btn-dict { background: var(--accent); }
         .btn-flash { background: var(--flashcard); }
         .btn-mistakes { background: white; color: #7f8c8d; border: 2px solid #ecf0f1; grid-column: span 2; }
         .btn:active { transform: scale(0.98); }
-        #quiz-view, #flash-view, #result-view, #mistake-view { display: none; flex: 1; flex-direction: column; }
+
         .quiz-input { width: 100%; padding: 14px; font-size: 22px; border: 2px solid var(--accent); border-radius: 10px; box-sizing: border-box; text-align: center; margin-top: 10px; outline: none; }
         .word-box { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: var(--primary); margin: 10px 0; min-height: 120px; word-break: break-all; }
         .progress-bar { height: 6px; background: #eee; border-radius: 3px; margin: 10px auto 20px; width: 80%; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
         .audio-icon { font-size: 64px; cursor: pointer; color: var(--accent); margin: 15px 0; display: inline-block; }
+
         .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
         .result-item { padding: 12px 5px; border-bottom: 1px solid #eee; font-size: 15px; }
         .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -43,8 +58,7 @@
 <div class="card">
     <button id="global-home-btn" class="home-btn" onclick="showView('input')" style="display:none">🏠 主页</button>
 
-    <div id="input-view">
-        <h2>🇫🇷 法语学习大师</h2>
+    <div id="input-view" style="display: flex;"> <h2>🇫🇷 法语学习大师</h2>
         <div class="mode-tag">准备你的单词表</div>
         <textarea id="raw-text" placeholder="Bonjour&#10;Merci&#10;每行一个词..."></textarea>
         <div class="fr-keyboard" id="kb-home"></div>
@@ -58,10 +72,10 @@
     <div id="quiz-view">
         <div class="progress-bar"><div class="progress-fill" id="dict-progress"></div></div>
         <div class="audio-icon" onclick="playSound()">🔊</div>
-        <form onsubmit="event.preventDefault(); submitAnswer();">
+        <form onsubmit="event.preventDefault(); submitAnswer();" style="width: 100%; display: flex; flex-direction: column;">
             <div class="fr-keyboard" id="kb-quiz"></div>
             <input type="text" id="user-input" class="quiz-input" autocomplete="off" placeholder="听音拼写..." spellcheck="false">
-            <button type="submit" class="btn btn-full" style="background:var(--success)">确认提交 (Enter)</button>
+            <button type="submit" class="btn btn-full" style="background:var(--success); margin-top: 20px;">确认提交 (Enter)</button>
         </form>
     </div>
 
@@ -69,20 +83,20 @@
         <div id="flash-counter" style="color:#95a5a6; font-size:14px">1 / 10</div>
         <div class="word-box" id="display-word" onclick="playSound()">Word</div>
         <div class="fr-keyboard" id="kb-flash"></div>
-        <input type="text" id="flash-input" class="quiz-input" style="border-color:var(--flashcard)" autocomplete="off" placeholder="可选：在此尝试输入..." spellcheck="false">
-        <button class="btn btn-flash btn-full" onclick="submitFlash()">下一个 (Enter/Space)</button>
+        <input type="text" id="flash-input" class="quiz-input" style="border-color:var(--flashcard)" autocomplete="off" placeholder="可选：在此手写/输入..." spellcheck="false">
+        <button class="btn btn-flash btn-full" onclick="submitFlash()" style="margin-top: 20px;">下一个 (Enter/Space)</button>
     </div>
 
     <div id="result-view">
         <h3 id="result-title">🎯 练习报告</h3>
-        <div id="score-display" style="font-size: 18px; margin: 10px 0;"></div>
+        <div id="score-display" style="font-size: 16px; margin: 5px 0; color: #666;"></div>
         <ul class="result-list" id="final-list"></ul>
-        <button class="btn btn-full" onclick="showView('input')">完成并返回</button>
+        <button class="btn btn-full" onclick="showView('input')" style="margin-top: 15px;">完成并返回</button>
     </div>
 
     <div id="mistake-view">
         <h2>📖 错题本</h2>
-        <div id="mistake-container" style="margin:20px 0; min-height: 100px;"></div>
+        <div id="mistake-container" style="margin:20px 0; min-height: 100px; text-align: center;"></div>
         <div class="btn-group">
             <button class="btn btn-dict" onclick="startApp('dict', 'mistakes')">听写错题</button>
             <button class="btn btn-flash" onclick="startApp('flash', 'mistakes')">闪卡过错题</button>
@@ -109,7 +123,8 @@
                 const btn = document.createElement('div');
                 btn.className = 'kb-btn';
                 btn.innerText = char;
-                btn.onclick = () => {
+                btn.onclick = (e) => {
+                    e.preventDefault();
                     let targetId = id === 'kb-home' ? 'raw-text' : (id === 'kb-quiz' ? 'user-input' : 'flash-input');
                     const el = document.getElementById(targetId);
                     const start = el.selectionStart;
@@ -141,13 +156,12 @@
         mode === 'dict' ? renderQuiz() : renderFlash();
     }
 
-    // --- 听写模式 (记录错题) ---
     function renderQuiz() {
         if (current < pool.length) {
             document.getElementById('dict-progress').style.width = `${(current/pool.length)*100}%`;
             document.getElementById('user-input').value = "";
             document.getElementById('user-input').focus();
-            playSound();
+            setTimeout(playSound, 300);
         } else {
             showResults();
         }
@@ -166,14 +180,13 @@
         renderQuiz();
     }
 
-    // --- 闪卡模式 (不记录错题，仅显示输入) ---
     function renderFlash() {
         if (current < pool.length) {
             document.getElementById('display-word').innerText = pool[current];
             document.getElementById('flash-counter').innerText = `${current + 1} / ${pool.length}`;
             document.getElementById('flash-input').value = "";
             document.getElementById('flash-input').focus();
-            if (!/[\u4e00-\u9fa5]/.test(pool[current])) playSound();
+            if (!/[\u4e00-\u9fa5]/.test(pool[current])) setTimeout(playSound, 300);
         } else {
             showResults();
         }
@@ -181,12 +194,11 @@
 
     function submitFlash() {
         const val = document.getElementById('flash-input').value.trim();
-        userAnswers.push(val); // 记录答案用于最后显示
+        userAnswers.push(val);
         current++;
         renderFlash();
     }
 
-    // --- 结果报告 (逻辑分叉) ---
     function showResults() {
         showView('result');
         const listEl = document.getElementById('final-list');
@@ -194,24 +206,24 @@
         const scoreEl = document.getElementById('score-display');
         
         if (activeMode === 'dict') {
-            titleEl.innerText = "🎯 听写报告 (已计入错题本)";
+            titleEl.innerText = "🎯 听写报告";
             let correct = 0;
             listEl.innerHTML = pool.map((word, i) => {
                 const isCorrect = userAnswers[i].toLowerCase() === word.toLowerCase();
                 if (isCorrect) correct++;
                 return `<li class="result-item">
-                    <div class="res-row"><b>${word}</b> <span class="${isCorrect?'':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
-                    ${!isCorrect ? `<div style="color:var(--error); font-size:13px">拼写: ${userAnswers[i]||'(空)'}</div>` : ''}
+                    <div class="res-row"><b>${word}</b> <span class="${isCorrect?'check-correct':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
+                    ${!isCorrect ? `<div style="color:var(--error); font-size:13px">你的拼写: ${userAnswers[i]||'(空)'}</div>` : ''}
                 </li>`;
             }).join('');
-            scoreEl.innerText = `得分: ${correct} / ${pool.length}`;
+            scoreEl.innerText = `准确率: ${Math.round((correct/pool.length)*100)}% (${correct}/${pool.length})`;
         } else {
-            titleEl.innerText = "🃏 闪卡练习回顾 (不计入错题本)";
-            scoreEl.innerText = `共练习 ${pool.length} 个单词`;
+            titleEl.innerText = "🃏 闪卡练习回顾";
+            scoreEl.innerText = `本次共浏览 ${pool.length} 个词条`;
             listEl.innerHTML = pool.map((word, i) => {
                 return `<li class="result-item">
                     <div class="res-row"><b>${word}</b></div>
-                    <div style="color:#7f8c8d; font-size:13px">你的记录: ${userAnswers[i] || '<span style="color:#bdc3c7">未输入(手写)</span>'}</div>
+                    <div style="color:#7f8c8d; font-size:13px">笔记/输入: ${userAnswers[i] || '<span style="color:#ccc">无手写记录</span>'}</div>
                 </li>`;
             }).join('');
         }
@@ -227,27 +239,32 @@
         synth.speak(utter);
     }
 
+    // 核心修复：确保切换视图时 display 始终为 flex
     function showView(view) {
-        ['input-view', 'quiz-view', 'flash-view', 'result-view', 'mistake-view'].forEach(id => {
+        const views = ['input-view', 'quiz-view', 'flash-view', 'result-view', 'mistake-view'];
+        views.forEach(id => {
             document.getElementById(id).style.display = 'none';
         });
-        document.getElementById(view + '-view').style.display = 'flex';
+        const target = document.getElementById(view + '-view');
+        target.style.display = 'flex'; // 始终保持 flex
+        target.style.flexDirection = 'column'; // 始终保持垂直排列
+        
         document.getElementById('global-home-btn').style.display = view === 'input' ? 'none' : 'block';
     }
 
     function saveData() { 
-        localStorage.setItem('fr_mistakes_v3', JSON.stringify(mistakes)); 
+        localStorage.setItem('fr_mistakes_v4', JSON.stringify(mistakes)); 
         document.getElementById('mistake-count').innerText = mistakes.length;
     }
     function loadData() {
-        mistakes = JSON.parse(localStorage.getItem('fr_mistakes_v3') || '[]');
+        mistakes = JSON.parse(localStorage.getItem('fr_mistakes_v4') || '[]');
         document.getElementById('mistake-count').innerText = mistakes.length;
     }
     function showMistakes() {
         showView('mistake');
         const container = document.getElementById('mistake-container');
         container.innerHTML = mistakes.length ? 
-            mistakes.map(m => `<span class="mistake-tag">${m}</span>`).join('') : "<div style='color:#ccc; padding:20px;'>空空如也</div>";
+            mistakes.map(m => `<span class="mistake-tag">${m}</span>`).join('') : "<div style='color:#ccc; padding:20px;'>本子干干净净</div>";
     }
     function copyMistakes() {
         navigator.clipboard.writeText(mistakes.join('\n')).then(() => alert("已复制到剪贴板"));
