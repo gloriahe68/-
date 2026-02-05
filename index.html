@@ -2,87 +2,93 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="Furina.png">
-    <title>法语听写大师 Pro (带特殊字符键盘)</title>
+    
+    <title>法语学习大师 Pro</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --bg: #f4f7f6; }
+        :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --flashcard: #e67e22; --bg: #f4f7f6; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #333; }
-        
-        .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 550px; display: flex; flex-direction: column; }
-        
+        .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 580px; display: flex; flex-direction: column; }
         .home-btn { position: absolute; top: 20px; right: 20px; background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #666; transition: 0.2s; font-weight: 500; z-index: 10; }
-        
-        h2 { color: var(--primary); margin: 0 0 20px 0; font-weight: 700; }
-        
-        textarea { width: 100%; height: 180px; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 16px; box-sizing: border-box; resize: none; margin-bottom: 5px; transition: 0.3s; background: #fafafa; }
+        h2 { color: var(--primary); margin: 0 0 5px 0; font-weight: 700; }
+        .mode-tag { font-size: 12px; color: #95a5a6; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        textarea { width: 100%; height: 160px; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 16px; box-sizing: border-box; resize: none; margin-bottom: 5px; transition: 0.3s; background: #fafafa; }
         textarea:focus { border-color: var(--accent); background: #fff; outline: none; }
-        
-        /* 虚拟键盘样式 */
         .fr-keyboard { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee; }
-        .kb-btn { background: white; border: 1px solid #ddd; border-radius: 6px; width: 36px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; font-weight: 500; transition: 0.1s; color: var(--primary); }
-        .kb-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
-        .kb-btn:active { transform: translateY(2px); }
-
+        .kb-btn { background: white; border: 1px solid #ddd; border-radius: 6px; width: 36px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; font-weight: 500; transition: 0.1s; }
+        .kb-btn:active { background: var(--accent); color: white; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-full { grid-column: span 2; }
+        .btn-dict { background: var(--accent); }
+        .btn-flash { background: var(--flashcard); }
+        .btn-mistakes { background: white; color: #7f8c8d; border: 2px solid #ecf0f1; grid-column: span 2; }
+        .btn:active { transform: scale(0.98); }
+        #quiz-view, #flash-view, #result-view, #mistake-view { display: none; flex: 1; flex-direction: column; }
         .quiz-input { width: 100%; padding: 14px; font-size: 22px; border: 2px solid var(--accent); border-radius: 10px; box-sizing: border-box; text-align: center; margin-top: 10px; outline: none; }
-        
-        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; cursor: pointer; margin-top: 12px; width: 100%; font-weight: 600; transition: 0.2s; }
-        .btn-mistakes { background: white; color: #7f8c8d; border: 2px solid #ecf0f1; }
-        
-        #quiz-view, #result-view, #mistake-view { display: none; flex: 1; }
+        .word-box { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: var(--primary); margin: 10px 0; min-height: 120px; word-break: break-all; }
         .progress-bar { height: 6px; background: #eee; border-radius: 3px; margin: 10px auto 20px; width: 80%; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
-        .audio-icon { font-size: 64px; cursor: pointer; color: var(--accent); margin: 30px 0; display: inline-block; }
-
-        .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; }
-        .result-item { padding: 12px 5px; border-bottom: 1px solid #eee; }
-        .res-row { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
-        .check-correct { color: var(--success); }
-        .check-wrong { color: var(--error); }
-        .mistake-tag { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; padding: 6px 12px; border-radius: 6px; font-size: 15px; }
+        .audio-icon { font-size: 64px; cursor: pointer; color: var(--accent); margin: 15px 0; display: inline-block; }
+        .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
+        .result-item { padding: 12px 5px; border-bottom: 1px solid #eee; font-size: 15px; }
+        .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .mistake-tag { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; padding: 6px 12px; border-radius: 6px; font-size: 15px; margin: 4px; display: inline-block; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <button id="global-home-btn" class="home-btn" onclick="showView('input')" style="display:none">🏠 回首页</button>
+    <button id="global-home-btn" class="home-btn" onclick="showView('input')" style="display:none">🏠 主页</button>
 
     <div id="input-view">
-        <h2>🇫🇷 法语听写大师</h2>
-        <textarea id="raw-text" placeholder="在此粘贴单词表...&#10;Bonjour&#10;Merci"></textarea>
-        
+        <h2>🇫🇷 法语学习大师</h2>
+        <div class="mode-tag">准备你的单词表</div>
+        <textarea id="raw-text" placeholder="Bonjour&#10;Merci&#10;每行一个词..."></textarea>
         <div class="fr-keyboard" id="kb-home"></div>
-
-        <button class="btn" onclick="startDictation()">🚀 开始听写</button>
-        <button class="btn btn-mistakes" onclick="showMistakes()">查看错题本 (<span id="mistake-count">0</span>)</button>
+        <div class="btn-group">
+            <button class="btn btn-dict" onclick="startApp('dict', 'raw')">🚀 听写模式</button>
+            <button class="btn btn-flash" onclick="startApp('flash', 'raw')">🃏 闪卡模式</button>
+            <button class="btn btn-mistakes" onclick="showMistakes()">错题本 (<span id="mistake-count">0</span>)</button>
+        </div>
     </div>
 
     <div id="quiz-view">
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-        <div style="font-size:14px; color:#95a5a6;" id="progress-text">1 / 10</div>
-        
+        <div class="progress-bar"><div class="progress-fill" id="dict-progress"></div></div>
         <div class="audio-icon" onclick="playSound()">🔊</div>
-        <div style="font-size: 12px; color: #bdc3c7; margin-bottom: 10px;">Ctrl+空格 重听</div>
-
         <form onsubmit="event.preventDefault(); submitAnswer();">
             <div class="fr-keyboard" id="kb-quiz"></div>
-            <input type="text" id="user-input" class="quiz-input" autocomplete="off" placeholder="在此输入..." spellcheck="false">
-            <button type="submit" class="btn" style="background:var(--success); margin-top:20px;">确认 (Enter)</button>
+            <input type="text" id="user-input" class="quiz-input" autocomplete="off" placeholder="听音拼写..." spellcheck="false">
+            <button type="submit" class="btn btn-full" style="background:var(--success)">确认提交 (Enter)</button>
         </form>
     </div>
 
+    <div id="flash-view">
+        <div id="flash-counter" style="color:#95a5a6; font-size:14px">1 / 10</div>
+        <div class="word-box" id="display-word" onclick="playSound()">Word</div>
+        <div class="fr-keyboard" id="kb-flash"></div>
+        <input type="text" id="flash-input" class="quiz-input" style="border-color:var(--flashcard)" autocomplete="off" placeholder="可选：在此尝试输入..." spellcheck="false">
+        <button class="btn btn-flash btn-full" onclick="submitFlash()">下一个 (Enter/Space)</button>
+    </div>
+
     <div id="result-view">
-        <h3>🎯 练习报告</h3>
-        <div id="score-display" style="font-size: 24px; font-weight: bold; margin: 10px 0;"></div>
+        <h3 id="result-title">🎯 练习报告</h3>
+        <div id="score-display" style="font-size: 18px; margin: 10px 0;"></div>
         <ul class="result-list" id="final-list"></ul>
-        <button class="btn" onclick="showView('input')">再来一组</button>
+        <button class="btn btn-full" onclick="showView('input')">完成并返回</button>
     </div>
 
     <div id="mistake-view">
-        <h2>📖 我的错题本</h2>
-        <div id="mistake-container" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:20px 0;"></div>
-        <button class="btn" onclick="copyMistakes()">📋 复制错题内容</button>
-        <button class="btn btn-mistakes" onclick="showView('input')" style="margin-top:10px;">返回</button>
+        <h2>📖 错题本</h2>
+        <div id="mistake-container" style="margin:20px 0; min-height: 100px;"></div>
+        <div class="btn-group">
+            <button class="btn btn-dict" onclick="startApp('dict', 'mistakes')">听写错题</button>
+            <button class="btn btn-flash" onclick="startApp('flash', 'mistakes')">闪卡过错题</button>
+            <button class="btn btn-full" style="background:#95a5a6" onclick="copyMistakes()">📋 复制错题文本</button>
+            <button class="btn btn-mistakes" onclick="showView('input')">返回主页</button>
+        </div>
     </div>
 </div>
 
@@ -91,123 +97,171 @@
     let current = 0;
     let userAnswers = [];
     let mistakes = [];
+    let activeMode = 'dict'; 
     const synth = window.speechSynthesis;
     const frChars = ['é', 'è', 'ê', 'ë', 'à', 'â', 'î', 'ï', 'ô', 'û', 'ù', 'ç', 'œ'];
 
-    // --- 虚拟键盘逻辑 ---
     function initKeyboards() {
-        const containers = ['kb-home', 'kb-quiz'];
-        containers.forEach(id => {
+        ['kb-home', 'kb-quiz', 'kb-flash'].forEach(id => {
             const kb = document.getElementById(id);
+            if(!kb) return;
             frChars.forEach(char => {
                 const btn = document.createElement('div');
                 btn.className = 'kb-btn';
                 btn.innerText = char;
-                btn.onclick = () => insertChar(char, id === 'kb-home' ? 'raw-text' : 'user-input');
+                btn.onclick = () => {
+                    let targetId = id === 'kb-home' ? 'raw-text' : (id === 'kb-quiz' ? 'user-input' : 'flash-input');
+                    const el = document.getElementById(targetId);
+                    const start = el.selectionStart;
+                    el.setRangeText(char, start, el.selectionEnd, 'end');
+                    el.focus();
+                };
                 kb.appendChild(btn);
             });
         });
     }
 
-    function insertChar(char, targetId) {
-        const el = document.getElementById(targetId);
-        const start = el.selectionStart;
-        const end = el.selectionEnd;
-        const text = el.value;
-        el.value = text.substring(0, start) + char + text.substring(end);
-        el.focus();
-        // 移动光标到插入字符之后
-        el.selectionStart = el.selectionEnd = start + 1;
-    }
-
-    // --- 基础逻辑 ---
-    function loadData() {
-        try { mistakes = JSON.parse(localStorage.getItem('fr_mistakes') || '[]'); } catch (e) { mistakes = []; }
-        updateMistakeCount();
-    }
-    loadData();
-    initKeyboards();
-
-    function updateMistakeCount() { document.getElementById('mistake-count').innerText = mistakes.length; }
-    function saveData() { localStorage.setItem('fr_mistakes', JSON.stringify(mistakes)); updateMistakeCount(); }
-
-    function startDictation() {
-        const input = document.getElementById('raw-text').value.trim();
-        if (!input) return alert("请输入内容");
-        pool = input.split('\n').map(s => s.trim()).filter(s => s !== "");
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
+    function startApp(mode, source) {
+        let text = "";
+        if (source === 'raw') {
+            text = document.getElementById('raw-text').value.trim();
+        } else {
+            text = mistakes.join('\n');
         }
-        current = 0; userAnswers = [];
-        showView('quiz'); renderQuiz();
+
+        if (!text) return alert("内容为空，无法开始");
+        
+        activeMode = mode;
+        pool = text.split('\n').map(s => s.trim()).filter(s => s !== "");
+        pool.sort(() => Math.random() - 0.5);
+        
+        current = 0;
+        userAnswers = [];
+        showView(mode === 'dict' ? 'quiz' : 'flash');
+        mode === 'dict' ? renderQuiz() : renderFlash();
     }
 
+    // --- 听写模式 (记录错题) ---
     function renderQuiz() {
         if (current < pool.length) {
-            document.getElementById('progress-fill').style.width = `${(current/pool.length)*100}%`;
-            document.getElementById('progress-text').innerText = `${current + 1} / ${pool.length}`;
-            const inputField = document.getElementById('user-input');
-            inputField.value = ""; inputField.focus();
+            document.getElementById('dict-progress').style.width = `${(current/pool.length)*100}%`;
+            document.getElementById('user-input').value = "";
+            document.getElementById('user-input').focus();
             playSound();
         } else {
             showResults();
         }
     }
 
-    function playSound() {
-        synth.cancel();
-        const utter = new SpeechSynthesisUtterance(pool[current]);
-        utter.lang = 'fr-FR'; utter.rate = 0.9;
-        synth.speak(utter);
-    }
-
     function submitAnswer() {
         const val = document.getElementById('user-input').value.trim();
         userAnswers.push(val);
         if (val.toLowerCase() !== pool[current].toLowerCase()) {
-            if (!mistakes.includes(pool[current])) { mistakes.push(pool[current]); saveData(); }
+            if (!mistakes.includes(pool[current])) {
+                mistakes.push(pool[current]);
+                saveData();
+            }
         }
-        current++; renderQuiz();
+        current++;
+        renderQuiz();
     }
 
+    // --- 闪卡模式 (不记录错题，仅显示输入) ---
+    function renderFlash() {
+        if (current < pool.length) {
+            document.getElementById('display-word').innerText = pool[current];
+            document.getElementById('flash-counter').innerText = `${current + 1} / ${pool.length}`;
+            document.getElementById('flash-input').value = "";
+            document.getElementById('flash-input').focus();
+            if (!/[\u4e00-\u9fa5]/.test(pool[current])) playSound();
+        } else {
+            showResults();
+        }
+    }
+
+    function submitFlash() {
+        const val = document.getElementById('flash-input').value.trim();
+        userAnswers.push(val); // 记录答案用于最后显示
+        current++;
+        renderFlash();
+    }
+
+    // --- 结果报告 (逻辑分叉) ---
     function showResults() {
         showView('result');
-        let correct = 0;
-        document.getElementById('final-list').innerHTML = pool.map((word, i) => {
-            const isCorrect = userAnswers[i].toLowerCase() === word.toLowerCase();
-            if (isCorrect) correct++;
-            return `<li class="result-item">
-                <div class="res-row"><span>${word}</span><span class="${isCorrect?'check-correct':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
-                ${!isCorrect ? `<span style="color:red; font-size:13px">拼写: ${userAnswers[i]||'空'}</span>` : ''}
-            </li>`;
-        }).join('');
-        document.getElementById('score-display').innerText = `${correct} / ${pool.length}`;
+        const listEl = document.getElementById('final-list');
+        const titleEl = document.getElementById('result-title');
+        const scoreEl = document.getElementById('score-display');
+        
+        if (activeMode === 'dict') {
+            titleEl.innerText = "🎯 听写报告 (已计入错题本)";
+            let correct = 0;
+            listEl.innerHTML = pool.map((word, i) => {
+                const isCorrect = userAnswers[i].toLowerCase() === word.toLowerCase();
+                if (isCorrect) correct++;
+                return `<li class="result-item">
+                    <div class="res-row"><b>${word}</b> <span class="${isCorrect?'':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
+                    ${!isCorrect ? `<div style="color:var(--error); font-size:13px">拼写: ${userAnswers[i]||'(空)'}</div>` : ''}
+                </li>`;
+            }).join('');
+            scoreEl.innerText = `得分: ${correct} / ${pool.length}`;
+        } else {
+            titleEl.innerText = "🃏 闪卡练习回顾 (不计入错题本)";
+            scoreEl.innerText = `共练习 ${pool.length} 个单词`;
+            listEl.innerHTML = pool.map((word, i) => {
+                return `<li class="result-item">
+                    <div class="res-row"><b>${word}</b></div>
+                    <div style="color:#7f8c8d; font-size:13px">你的记录: ${userAnswers[i] || '<span style="color:#bdc3c7">未输入(手写)</span>'}</div>
+                </li>`;
+            }).join('');
+        }
     }
 
-    function showMistakes() {
-        showView('mistake');
-        const container = document.getElementById('mistake-container');
-        container.innerHTML = mistakes.length ? mistakes.map(m => `<span class="mistake-tag">${m}</span>`).join('') : "<div style='color:#999'>暂无错题</div>";
-    }
-
-    function copyMistakes() {
-        navigator.clipboard.writeText(mistakes.join('\n')).then(() => alert("已复制"));
+    function playSound() {
+        synth.cancel();
+        const word = pool[current];
+        if(!word) return;
+        const utter = new SpeechSynthesisUtterance(word);
+        utter.lang = /[\u4e00-\u9fa5]/.test(word) ? 'zh-CN' : 'fr-FR';
+        utter.rate = 0.85;
+        synth.speak(utter);
     }
 
     function showView(view) {
-        ['input-view', 'quiz-view', 'result-view', 'mistake-view'].forEach(id => document.getElementById(id).style.display = 'none');
-        const target = document.getElementById(view + '-view');
-        target.style.display = (view === 'quiz' || view === 'mistake') ? 'flex' : 'block';
-        if (view === 'quiz' || view === 'mistake') target.style.flexDirection = 'column';
+        ['input-view', 'quiz-view', 'flash-view', 'result-view', 'mistake-view'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+        document.getElementById(view + '-view').style.display = 'flex';
         document.getElementById('global-home-btn').style.display = view === 'input' ? 'none' : 'block';
     }
 
+    function saveData() { 
+        localStorage.setItem('fr_mistakes_v3', JSON.stringify(mistakes)); 
+        document.getElementById('mistake-count').innerText = mistakes.length;
+    }
+    function loadData() {
+        mistakes = JSON.parse(localStorage.getItem('fr_mistakes_v3') || '[]');
+        document.getElementById('mistake-count').innerText = mistakes.length;
+    }
+    function showMistakes() {
+        showView('mistake');
+        const container = document.getElementById('mistake-container');
+        container.innerHTML = mistakes.length ? 
+            mistakes.map(m => `<span class="mistake-tag">${m}</span>`).join('') : "<div style='color:#ccc; padding:20px;'>空空如也</div>";
+    }
+    function copyMistakes() {
+        navigator.clipboard.writeText(mistakes.join('\n')).then(() => alert("已复制到剪贴板"));
+    }
+
     document.addEventListener('keydown', (e) => {
-        if (document.getElementById('quiz-view').style.display !== 'none' && e.code === 'Space' && e.ctrlKey) {
-            e.preventDefault(); playSound();
-        }
+        const isQuiz = document.getElementById('quiz-view').style.display === 'flex';
+        const isFlash = document.getElementById('flash-view').style.display === 'flex';
+        if (isQuiz && e.code === 'Space' && e.ctrlKey) { e.preventDefault(); playSound(); }
+        if (isFlash && (e.key === 'Enter')) { e.preventDefault(); submitFlash(); }
     });
+
+    loadData();
+    initKeyboards();
 </script>
 </body>
 </html>
