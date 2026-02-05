@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法语听写大师 Pro (带特殊字符键盘)</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --bg: #f4f7f6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #333; }
+        
+        .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 550px; display: flex; flex-direction: column; }
+        
+        .home-btn { position: absolute; top: 20px; right: 20px; background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #666; transition: 0.2s; font-weight: 500; z-index: 10; }
+        
+        h2 { color: var(--primary); margin: 0 0 20px 0; font-weight: 700; }
+        
+        textarea { width: 100%; height: 180px; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 16px; box-sizing: border-box; resize: none; margin-bottom: 5px; transition: 0.3s; background: #fafafa; }
+        textarea:focus { border-color: var(--accent); background: #fff; outline: none; }
+        
+        /* 虚拟键盘样式 */
+        .fr-keyboard { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee; }
+        .kb-btn { background: white; border: 1px solid #ddd; border-radius: 6px; width: 36px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; font-weight: 500; transition: 0.1s; color: var(--primary); }
+        .kb-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .kb-btn:active { transform: translateY(2px); }
+
+        .quiz-input { width: 100%; padding: 14px; font-size: 22px; border: 2px solid var(--accent); border-radius: 10px; box-sizing: border-box; text-align: center; margin-top: 10px; outline: none; }
+        
+        .btn { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; cursor: pointer; margin-top: 12px; width: 100%; font-weight: 600; transition: 0.2s; }
+        .btn-mistakes { background: white; color: #7f8c8d; border: 2px solid #ecf0f1; }
+        
+        #quiz-view, #result-view, #mistake-view { display: none; flex: 1; }
+        .progress-bar { height: 6px; background: #eee; border-radius: 3px; margin: 10px auto 20px; width: 80%; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+        .audio-icon { font-size: 64px; cursor: pointer; color: var(--accent); margin: 30px 0; display: inline-block; }
+
+        .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; }
+        .result-item { padding: 12px 5px; border-bottom: 1px solid #eee; }
+        .res-row { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
+        .check-correct { color: var(--success); }
+        .check-wrong { color: var(--error); }
+        .mistake-tag { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; padding: 6px 12px; border-radius: 6px; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <button id="global-home-btn" class="home-btn" onclick="showView('input')" style="display:none">🏠 回首页</button>
+
+    <div id="input-view">
+        <h2>🇫🇷 法语听写大师</h2>
+        <textarea id="raw-text" placeholder="在此粘贴单词表...&#10;Bonjour&#10;Merci"></textarea>
+        
+        <div class="fr-keyboard" id="kb-home"></div>
+
+        <button class="btn" onclick="startDictation()">🚀 开始听写</button>
+        <button class="btn btn-mistakes" onclick="showMistakes()">查看错题本 (<span id="mistake-count">0</span>)</button>
+    </div>
+
+    <div id="quiz-view">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div style="font-size:14px; color:#95a5a6;" id="progress-text">1 / 10</div>
+        
+        <div class="audio-icon" onclick="playSound()">🔊</div>
+        <div style="font-size: 12px; color: #bdc3c7; margin-bottom: 10px;">Ctrl+空格 重听</div>
+
+        <form onsubmit="event.preventDefault(); submitAnswer();">
+            <div class="fr-keyboard" id="kb-quiz"></div>
+            <input type="text" id="user-input" class="quiz-input" autocomplete="off" placeholder="在此输入..." spellcheck="false">
+            <button type="submit" class="btn" style="background:var(--success); margin-top:20px;">确认 (Enter)</button>
+        </form>
+    </div>
+
+    <div id="result-view">
+        <h3>🎯 练习报告</h3>
+        <div id="score-display" style="font-size: 24px; font-weight: bold; margin: 10px 0;"></div>
+        <ul class="result-list" id="final-list"></ul>
+        <button class="btn" onclick="showView('input')">再来一组</button>
+    </div>
+
+    <div id="mistake-view">
+        <h2>📖 我的错题本</h2>
+        <div id="mistake-container" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:20px 0;"></div>
+        <button class="btn" onclick="copyMistakes()">📋 复制错题内容</button>
+        <button class="btn btn-mistakes" onclick="showView('input')" style="margin-top:10px;">返回</button>
+    </div>
+</div>
+
+<script>
+    let pool = [];
+    let current = 0;
+    let userAnswers = [];
+    let mistakes = [];
+    const synth = window.speechSynthesis;
+    const frChars = ['é', 'è', 'ê', 'ë', 'à', 'â', 'î', 'ï', 'ô', 'û', 'ù', 'ç', 'œ'];
+
+    // --- 虚拟键盘逻辑 ---
+    function initKeyboards() {
+        const containers = ['kb-home', 'kb-quiz'];
+        containers.forEach(id => {
+            const kb = document.getElementById(id);
+            frChars.forEach(char => {
+                const btn = document.createElement('div');
+                btn.className = 'kb-btn';
+                btn.innerText = char;
+                btn.onclick = () => insertChar(char, id === 'kb-home' ? 'raw-text' : 'user-input');
+                kb.appendChild(btn);
+            });
+        });
+    }
+
+    function insertChar(char, targetId) {
+        const el = document.getElementById(targetId);
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
+        const text = el.value;
+        el.value = text.substring(0, start) + char + text.substring(end);
+        el.focus();
+        // 移动光标到插入字符之后
+        el.selectionStart = el.selectionEnd = start + 1;
+    }
+
+    // --- 基础逻辑 ---
+    function loadData() {
+        try { mistakes = JSON.parse(localStorage.getItem('fr_mistakes') || '[]'); } catch (e) { mistakes = []; }
+        updateMistakeCount();
+    }
+    loadData();
+    initKeyboards();
+
+    function updateMistakeCount() { document.getElementById('mistake-count').innerText = mistakes.length; }
+    function saveData() { localStorage.setItem('fr_mistakes', JSON.stringify(mistakes)); updateMistakeCount(); }
+
+    function startDictation() {
+        const input = document.getElementById('raw-text').value.trim();
+        if (!input) return alert("请输入内容");
+        pool = input.split('\n').map(s => s.trim()).filter(s => s !== "");
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        current = 0; userAnswers = [];
+        showView('quiz'); renderQuiz();
+    }
+
+    function renderQuiz() {
+        if (current < pool.length) {
+            document.getElementById('progress-fill').style.width = `${(current/pool.length)*100}%`;
+            document.getElementById('progress-text').innerText = `${current + 1} / ${pool.length}`;
+            const inputField = document.getElementById('user-input');
+            inputField.value = ""; inputField.focus();
+            playSound();
+        } else {
+            showResults();
+        }
+    }
+
+    function playSound() {
+        synth.cancel();
+        const utter = new SpeechSynthesisUtterance(pool[current]);
+        utter.lang = 'fr-FR'; utter.rate = 0.9;
+        synth.speak(utter);
+    }
+
+    function submitAnswer() {
+        const val = document.getElementById('user-input').value.trim();
+        userAnswers.push(val);
+        if (val.toLowerCase() !== pool[current].toLowerCase()) {
+            if (!mistakes.includes(pool[current])) { mistakes.push(pool[current]); saveData(); }
+        }
+        current++; renderQuiz();
+    }
+
+    function showResults() {
+        showView('result');
+        let correct = 0;
+        document.getElementById('final-list').innerHTML = pool.map((word, i) => {
+            const isCorrect = userAnswers[i].toLowerCase() === word.toLowerCase();
+            if (isCorrect) correct++;
+            return `<li class="result-item">
+                <div class="res-row"><span>${word}</span><span class="${isCorrect?'check-correct':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
+                ${!isCorrect ? `<span style="color:red; font-size:13px">拼写: ${userAnswers[i]||'空'}</span>` : ''}
+            </li>`;
+        }).join('');
+        document.getElementById('score-display').innerText = `${correct} / ${pool.length}`;
+    }
+
+    function showMistakes() {
+        showView('mistake');
+        const container = document.getElementById('mistake-container');
+        container.innerHTML = mistakes.length ? mistakes.map(m => `<span class="mistake-tag">${m}</span>`).join('') : "<div style='color:#999'>暂无错题</div>";
+    }
+
+    function copyMistakes() {
+        navigator.clipboard.writeText(mistakes.join('\n')).then(() => alert("已复制"));
+    }
+
+    function showView(view) {
+        ['input-view', 'quiz-view', 'result-view', 'mistake-view'].forEach(id => document.getElementById(id).style.display = 'none');
+        const target = document.getElementById(view + '-view');
+        target.style.display = (view === 'quiz' || view === 'mistake') ? 'flex' : 'block';
+        if (view === 'quiz' || view === 'mistake') target.style.flexDirection = 'column';
+        document.getElementById('global-home-btn').style.display = view === 'input' ? 'none' : 'block';
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('quiz-view').style.display !== 'none' && e.code === 'Space' && e.ctrlKey) {
+            e.preventDefault(); playSound();
+        }
+    });
+</script>
+</body>
+</html>
