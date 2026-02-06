@@ -11,10 +11,9 @@
         :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --flashcard: #e67e22; --bg: #f4f7f6; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #333; }
         
-        /* 卡片主容器 */
         .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 600px; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        /* 视图容器通用样式：确保所有界面都是垂直排列 */
+        /* 视图容器通用样式 */
         #input-view, #quiz-view, #flash-view, #result-view, #mistake-view { 
             display: none; 
             flex-direction: column; 
@@ -50,7 +49,19 @@
         .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
         .result-item { padding: 12px 5px; border-bottom: 1px solid #eee; font-size: 15px; }
         .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .mistake-tag { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; padding: 6px 12px; border-radius: 6px; font-size: 15px; margin: 4px; display: inline-block; }
+        
+        /* --- 新版错题本样式 (竖向列表) --- */
+        #mistake-container { margin: 20px 0; overflow-y: auto; max-height: 350px; border: 1px solid #f0f0f0; border-radius: 10px; }
+        .mistake-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; background: #fff; text-align: left; }
+        .mistake-row:last-child { border-bottom: none; }
+        .mistake-row:nth-child(even) { background: #fafafa; }
+        .m-word { font-weight: 600; color: var(--primary); flex: 1; margin-right: 10px; word-break: break-all; }
+        .m-actions { display: flex; gap: 8px; }
+        .action-btn { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .btn-edit { background: #e0f2fe; color: #0284c7; } /* 蓝色编辑 */
+        .btn-del { background: #fee2e2; color: #ef4444; } /* 红色删除 */
+        .action-btn:active { transform: scale(0.9); }
+
     </style>
 </head>
 <body>
@@ -58,7 +69,8 @@
 <div class="card">
     <button id="global-home-btn" class="home-btn" onclick="showView('input')" style="display:none">🏠 主页</button>
 
-    <div id="input-view" style="display: flex;"> <h2>🇫🇷 法语学习大师</h2>
+    <div id="input-view" style="display: flex;">
+        <h2>🇫🇷 法语学习大师</h2>
         <div class="mode-tag">准备你的单词表</div>
         <textarea id="raw-text" placeholder="Bonjour&#10;Merci&#10;每行一个词..."></textarea>
         <div class="fr-keyboard" id="kb-home"></div>
@@ -96,7 +108,7 @@
 
     <div id="mistake-view">
         <h2>📖 错题本</h2>
-        <div id="mistake-container" style="margin:20px 0; min-height: 100px; text-align: center;"></div>
+        <div id="mistake-container"></div>
         <div class="btn-group">
             <button class="btn btn-dict" onclick="startApp('dict', 'mistakes')">听写错题</button>
             <button class="btn btn-flash" onclick="startApp('flash', 'mistakes')">闪卡过错题</button>
@@ -239,16 +251,14 @@
         synth.speak(utter);
     }
 
-    // 核心修复：确保切换视图时 display 始终为 flex
     function showView(view) {
         const views = ['input-view', 'quiz-view', 'flash-view', 'result-view', 'mistake-view'];
         views.forEach(id => {
             document.getElementById(id).style.display = 'none';
         });
         const target = document.getElementById(view + '-view');
-        target.style.display = 'flex'; // 始终保持 flex
-        target.style.flexDirection = 'column'; // 始终保持垂直排列
-        
+        target.style.display = 'flex';
+        target.style.flexDirection = 'column';
         document.getElementById('global-home-btn').style.display = view === 'input' ? 'none' : 'block';
     }
 
@@ -256,17 +266,56 @@
         localStorage.setItem('fr_mistakes_v4', JSON.stringify(mistakes)); 
         document.getElementById('mistake-count').innerText = mistakes.length;
     }
+    
     function loadData() {
         mistakes = JSON.parse(localStorage.getItem('fr_mistakes_v4') || '[]');
         document.getElementById('mistake-count').innerText = mistakes.length;
     }
+
+    // --- 新版错题本逻辑 ---
+    
     function showMistakes() {
         showView('mistake');
         const container = document.getElementById('mistake-container');
-        container.innerHTML = mistakes.length ? 
-            mistakes.map(m => `<span class="mistake-tag">${m}</span>`).join('') : "<div style='color:#ccc; padding:20px;'>本子干干净净</div>";
+        if (!mistakes.length) {
+            container.innerHTML = "<div style='color:#ccc; padding:40px;'>暂无错题，继续加油！</div>";
+            return;
+        }
+        
+        // 渲染列表
+        container.innerHTML = mistakes.map((m, idx) => `
+            <div class="mistake-row">
+                <span class="m-word">${m}</span>
+                <div class="m-actions">
+                    <button class="action-btn btn-edit" onclick="editMistake(${idx})">✎</button>
+                    <button class="action-btn btn-del" onclick="deleteMistake(${idx})">🗑</button>
+                </div>
+            </div>
+        `).join('');
     }
+
+    // 删除逻辑
+    function deleteMistake(index) {
+        if(confirm(`确定删除 "${mistakes[index]}" 吗？`)) {
+            mistakes.splice(index, 1);
+            saveData();
+            showMistakes();
+        }
+    }
+
+    // 编辑逻辑
+    function editMistake(index) {
+        const oldVal = mistakes[index];
+        const newVal = prompt("修改单词内容:", oldVal);
+        if (newVal !== null && newVal.trim() !== "") {
+            mistakes[index] = newVal.trim();
+            saveData();
+            showMistakes();
+        }
+    }
+
     function copyMistakes() {
+        if(!mistakes.length) return alert("没有错题可复制");
         navigator.clipboard.writeText(mistakes.join('\n')).then(() => alert("已复制到剪贴板"));
     }
 
