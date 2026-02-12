@@ -6,19 +6,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="Furina.png">
     
-    <title>法语学习大师 Pro</title>
+    <title>法语数字听写大师 Pro (0-1,000,000)</title>
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --flashcard: #e67e22; --bg: #f4f7f6; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #333; }
         
         .card { background: white; width: 100%; max-width: 550px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; text-align: center; position: relative; min-height: 600px; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        /* 视图容器通用样式 */
         #input-view, #quiz-view, #flash-view, #result-view, #mistake-view { 
-            display: none; 
-            flex-direction: column; 
-            width: 100%;
-            height: 100%;
+            display: none; flex-direction: column; width: 100%; height: 100%;
         }
 
         .home-btn { position: absolute; top: 20px; right: 20px; background: #f0f0f0; border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #666; transition: 0.2s; font-weight: 500; z-index: 10; }
@@ -49,8 +45,9 @@
         .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
         .result-item { padding: 12px 5px; border-bottom: 1px solid #eee; font-size: 15px; }
         .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .check-correct { color: var(--success); font-weight: bold; }
+        .check-wrong { color: var(--error); font-weight: bold; }
         
-        /* --- 新版错题本样式 (竖向列表) --- */
         #mistake-container { margin: 20px 0; overflow-y: auto; max-height: 350px; border: 1px solid #f0f0f0; border-radius: 10px; }
         .mistake-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; background: #fff; text-align: left; }
         .mistake-row:last-child { border-bottom: none; }
@@ -58,10 +55,8 @@
         .m-word { font-weight: 600; color: var(--primary); flex: 1; margin-right: 10px; word-break: break-all; }
         .m-actions { display: flex; gap: 8px; }
         .action-btn { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s; }
-        .btn-edit { background: #e0f2fe; color: #0284c7; } /* 蓝色编辑 */
-        .btn-del { background: #fee2e2; color: #ef4444; } /* 红色删除 */
-        .action-btn:active { transform: scale(0.9); }
-
+        .btn-edit { background: #e0f2fe; color: #0284c7; }
+        .btn-del { background: #fee2e2; color: #ef4444; }
     </style>
 </head>
 <body>
@@ -71,8 +66,8 @@
 
     <div id="input-view" style="display: flex;">
         <h2>🇫🇷 法语学习大师</h2>
-        <div class="mode-tag">准备你的单词表</div>
-        <textarea id="raw-text" placeholder="Bonjour&#10;Merci&#10;每行一个词..."></textarea>
+        <div class="mode-tag">Pro版: 支持100万以内数字智能听写</div>
+        <textarea id="raw-text" placeholder="10&#10;80&#10;200&#10;Bonjour&#10;..."></textarea>
         <div class="fr-keyboard" id="kb-home"></div>
         <div class="btn-group">
             <button class="btn btn-dict" onclick="startApp('dict', 'raw')">🚀 听写模式</button>
@@ -86,7 +81,7 @@
         <div class="audio-icon" onclick="playSound()">🔊</div>
         <form onsubmit="event.preventDefault(); submitAnswer();" style="width: 100%; display: flex; flex-direction: column;">
             <div class="fr-keyboard" id="kb-quiz"></div>
-            <input type="text" id="user-input" class="quiz-input" autocomplete="off" placeholder="听音拼写..." spellcheck="false">
+            <input type="text" id="user-input" class="quiz-input" autocomplete="off" placeholder="听音写词 (数字写法语)" spellcheck="false">
             <button type="submit" class="btn btn-full" style="background:var(--success); margin-top: 20px;">确认提交 (Enter)</button>
         </form>
     </div>
@@ -95,7 +90,7 @@
         <div id="flash-counter" style="color:#95a5a6; font-size:14px">1 / 10</div>
         <div class="word-box" id="display-word" onclick="playSound()">Word</div>
         <div class="fr-keyboard" id="kb-flash"></div>
-        <input type="text" id="flash-input" class="quiz-input" style="border-color:var(--flashcard)" autocomplete="off" placeholder="可选：在此手写/输入..." spellcheck="false">
+        <input type="text" id="flash-input" class="quiz-input" style="border-color:var(--flashcard)" autocomplete="off" placeholder="手写练习 (可选)" spellcheck="false">
         <button class="btn btn-flash btn-full" onclick="submitFlash()" style="margin-top: 20px;">下一个 (Enter/Space)</button>
     </div>
 
@@ -119,6 +114,7 @@
 </div>
 
 <script>
+    // --- 核心变量 ---
     let pool = [];
     let current = 0;
     let userAnswers = [];
@@ -126,6 +122,89 @@
     let activeMode = 'dict'; 
     const synth = window.speechSynthesis;
     const frChars = ['é', 'è', 'ê', 'ë', 'à', 'â', 'î', 'ï', 'ô', 'û', 'ù', 'ç', 'œ'];
+
+    // --- 🔢 强力版：数字转法语算法 (支持 0 - 999,999) ---
+    function numberToFrench(num) {
+        let n = parseInt(num);
+        if (isNaN(n)) return null;
+        if (n < 0) return null;
+        if (n === 0) return "zéro";
+
+        const units = ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf"];
+        const teens = ["dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
+        const tens = ["", "dix", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingt", "quatre-vingt-dix"];
+
+        function convertSub100(val) {
+            if (val < 10) return units[val];
+            if (val < 20) return teens[val - 10];
+            
+            let ten = Math.floor(val / 10);
+            let rem = val % 10;
+
+            if (ten === 7 || ten === 9) {
+                let base = (ten === 7) ? "soixante" : "quatre-vingt";
+                let connector = (ten === 7 && rem === 1) ? " et " : "-";
+                return base + connector + teens[rem];
+            }
+
+            let strTen = tens[ten];
+            if (ten === 8) {
+                if (rem === 0) return "quatre-vingts";
+                return "quatre-vingt-" + units[rem];
+            }
+
+            if (rem === 0) return strTen;
+            if (rem === 1) return strTen + " et un";
+            return strTen + "-" + units[rem];
+        }
+
+        function convertSub1000(val) {
+            if (val < 100) return convertSub100(val);
+            let h = Math.floor(val / 100);
+            let r = val % 100;
+            let strH = (h === 1) ? "cent" : units[h] + " cent";
+            if (h > 1 && r === 0) strH += "s";
+            if (r === 0) return strH;
+            return strH + " " + convertSub100(r);
+        }
+
+        // 处理百万以内 (999,999)
+        if (n >= 1000000) return "超出范围"; 
+
+        let k = Math.floor(n / 1000);
+        let r = n % 1000;
+        let res = "";
+
+        if (k > 0) {
+            if (k === 1) {
+                res = "mille";
+            } else {
+                let kStr = convertSub1000(k);
+                // 语法修正：mille前去掉复数s
+                kStr = kStr.replace(/vingts$/, "vingt").replace(/cents$/, "cent");
+                res = kStr + " mille";
+            }
+        }
+
+        if (r > 0) {
+            if (res !== "") res += " ";
+            res += convertSub1000(r);
+        } else if (k === 0) {
+            res = convertSub1000(r);
+        }
+
+        return res.trim();
+    }
+
+    // --- 辅助函数 ---
+    function getTargetWord(text) {
+        const cleanText = text.replace(/\s/g, ''); 
+        if (/^\d+$/.test(cleanText)) {
+            const converted = numberToFrench(cleanText);
+            if (converted) return converted;
+        }
+        return text;
+    }
 
     function initKeyboards() {
         ['kb-home', 'kb-quiz', 'kb-flash'].forEach(id => {
@@ -148,6 +227,7 @@
         });
     }
 
+    // --- App 流程 ---
     function startApp(mode, source) {
         let text = "";
         if (source === 'raw') {
@@ -182,9 +262,22 @@
     function submitAnswer() {
         const val = document.getElementById('user-input').value.trim();
         userAnswers.push(val);
-        if (val.toLowerCase() !== pool[current].toLowerCase()) {
-            if (!mistakes.includes(pool[current])) {
-                mistakes.push(pool[current]);
+        
+        const originalWord = pool[current];
+        const targetWord = getTargetWord(originalWord); 
+
+        // 核心容错逻辑：全部转小写，全部替换连字符和多余空格
+        // "vingt-deux" -> "vingt deux"
+        // "vingt deux" -> "vingt deux"
+        // "Vingt  Deux" -> "vingt deux"
+        const cleanVal = val.toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ').trim(); 
+        const cleanTarget = targetWord.toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+
+        let isCorrect = cleanVal === cleanTarget;
+
+        if (!isCorrect) {
+            if (!mistakes.includes(originalWord)) {
+                mistakes.push(originalWord);
                 saveData();
             }
         }
@@ -198,7 +291,8 @@
             document.getElementById('flash-counter').innerText = `${current + 1} / ${pool.length}`;
             document.getElementById('flash-input').value = "";
             document.getElementById('flash-input').focus();
-            if (!/[\u4e00-\u9fa5]/.test(pool[current])) setTimeout(playSound, 300);
+            const word = pool[current];
+            if (!/[\u4e00-\u9fa5]/.test(word)) setTimeout(playSound, 300);
         } else {
             showResults();
         }
@@ -221,11 +315,19 @@
             titleEl.innerText = "🎯 听写报告";
             let correct = 0;
             listEl.innerHTML = pool.map((word, i) => {
-                const isCorrect = userAnswers[i].toLowerCase() === word.toLowerCase();
+                const targetWord = getTargetWord(word); 
+                
+                const cleanVal = userAnswers[i].toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ').trim(); 
+                const cleanTarget = targetWord.toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+                const isCorrect = cleanVal === cleanTarget;
+
                 if (isCorrect) correct++;
+                
+                const displayWord = (word !== targetWord) ? `${word} (${targetWord})` : word;
+
                 return `<li class="result-item">
-                    <div class="res-row"><b>${word}</b> <span class="${isCorrect?'check-correct':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
-                    ${!isCorrect ? `<div style="color:var(--error); font-size:13px">你的拼写: ${userAnswers[i]||'(空)'}</div>` : ''}
+                    <div class="res-row"><b>${displayWord}</b> <span class="${isCorrect?'check-correct':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
+                    ${!isCorrect ? `<div style="color:var(--error); font-size:13px">你的拼写: ${userAnswers[i]||'(空)'} <br>正确拼写: <b>${targetWord}</b></div>` : ''}
                 </li>`;
             }).join('');
             scoreEl.innerText = `准确率: ${Math.round((correct/pool.length)*100)}% (${correct}/${pool.length})`;
@@ -233,8 +335,10 @@
             titleEl.innerText = "🃏 闪卡练习回顾";
             scoreEl.innerText = `本次共浏览 ${pool.length} 个词条`;
             listEl.innerHTML = pool.map((word, i) => {
+                const targetWord = getTargetWord(word);
+                const displayWord = (word !== targetWord) ? `${word} -> ${targetWord}` : word;
                 return `<li class="result-item">
-                    <div class="res-row"><b>${word}</b></div>
+                    <div class="res-row"><b>${displayWord}</b></div>
                     <div style="color:#7f8c8d; font-size:13px">笔记/输入: ${userAnswers[i] || '<span style="color:#ccc">无手写记录</span>'}</div>
                 </li>`;
             }).join('');
@@ -243,11 +347,18 @@
 
     function playSound() {
         synth.cancel();
-        const word = pool[current];
+        let word = pool[current];
         if(!word) return;
+
+        let cleanWord = word.replace(/\s/g, '');
+        if (/^\d+$/.test(cleanWord)) {
+            const frNum = numberToFrench(cleanWord);
+            if (frNum) word = frNum;
+        }
+
         const utter = new SpeechSynthesisUtterance(word);
         utter.lang = /[\u4e00-\u9fa5]/.test(word) ? 'zh-CN' : 'fr-FR';
-        utter.rate = 0.85;
+        utter.rate = 0.85; 
         synth.speak(utter);
     }
 
@@ -272,8 +383,6 @@
         document.getElementById('mistake-count').innerText = mistakes.length;
     }
 
-    // --- 新版错题本逻辑 ---
-    
     function showMistakes() {
         showView('mistake');
         const container = document.getElementById('mistake-container');
@@ -282,7 +391,6 @@
             return;
         }
         
-        // 渲染列表
         container.innerHTML = mistakes.map((m, idx) => `
             <div class="mistake-row">
                 <span class="m-word">${m}</span>
@@ -294,7 +402,6 @@
         `).join('');
     }
 
-    // 删除逻辑
     function deleteMistake(index) {
         if(confirm(`确定删除 "${mistakes[index]}" 吗？`)) {
             mistakes.splice(index, 1);
@@ -303,7 +410,6 @@
         }
     }
 
-    // 编辑逻辑
     function editMistake(index) {
         const oldVal = mistakes[index];
         const newVal = prompt("修改单词内容:", oldVal);
@@ -322,8 +428,17 @@
     document.addEventListener('keydown', (e) => {
         const isQuiz = document.getElementById('quiz-view').style.display === 'flex';
         const isFlash = document.getElementById('flash-view').style.display === 'flex';
-        if (isQuiz && e.code === 'Space' && e.ctrlKey) { e.preventDefault(); playSound(); }
-        if (isFlash && (e.key === 'Enter')) { e.preventDefault(); submitFlash(); }
+        
+        if (isQuiz && e.code === 'Space' && e.ctrlKey) { 
+            e.preventDefault(); 
+            playSound(); 
+        }
+        
+        if (isFlash && e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            submitFlash(); 
+        }
     });
 
     loadData();
