@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,46 +10,25 @@
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --error: #e74c3c; --success: #27ae60; --flashcard: #e67e22; --read: #9b59b6; --article: #16a085; --bg: #f4f7f6; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; color: #333; }
-        
         .card { background: white; width: 100%; max-width: 650px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 45px 35px 35px 35px; text-align: center; position: relative; min-height: 650px; display: flex; flex-direction: column; box-sizing: border-box; }
-        
-        #input-view, #quiz-view, #flash-view, #result-view, #mistake-view, #read-view, #article-view { 
-            display: none; flex-direction: column; width: 100%; height: 100%;
-        }
-
-        /* 顶部按钮统一样式 */
+        #input-view, #quiz-view, #flash-view, #result-view, #mistake-view, #read-view, #article-view { display: none; flex-direction: column; width: 100%; height: 100%; }
         .top-btn { position: absolute; top: 20px; background: #f0f0f0; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 15px; color: #666; transition: 0.2s; font-weight: 500; z-index: 10; outline: none; }
         .top-btn:active { background: #e0e0e0; }
         .home-btn { right: 20px; }
-        
-        /* 语速下拉框特殊样式 */
         .rate-select { left: 20px; padding: 7px 12px; font-family: inherit; }
-
         h2 { color: var(--primary); margin: 0 0 5px 0; font-weight: 700; font-size: 28px; }
         .mode-tag { font-size: 14px; color: #95a5a6; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* 随机数字生成器面板 */
         .generator-box { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px; padding: 12px; background: #e0f2fe; border-radius: 10px; flex-wrap: wrap; font-size: 15px; color: #0284c7; }
         .generator-box input { width: 75px; padding: 6px; border: 1px solid #bae6fd; border-radius: 6px; text-align: center; font-size: 15px; color: #0369a1; outline: none; transition: 0.2s; }
         .generator-box input:focus { border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,0.2); }
         .generator-box input#gen-max { width: 110px; }
         .btn-gen { background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-gen:active { transform: scale(0.95); }
-
-        /* textarea 样式 */
-        textarea { 
-            width: 100%; height: 160px; min-height: 120px; max-height: 500px; 
-            border: 2px solid #e0e0e0; border-radius: 12px; padding: 18px; font-size: 18px; 
-            box-sizing: border-box; resize: vertical; overflow-y: auto; margin-bottom: 5px; 
-            transition: border-color 0.3s, background 0.3s; background: #fafafa; 
-        }
-        
+        textarea { width: 100%; height: 160px; min-height: 120px; max-height: 500px; border: 2px solid #e0e0e0; border-radius: 12px; padding: 18px; font-size: 18px; box-sizing: border-box; resize: vertical; overflow-y: auto; margin-bottom: 5px; transition: border-color 0.3s, background 0.3s; background: #fafafa; }
         textarea:focus { border-color: var(--accent); background: #fff; outline: none; }
-        
         .fr-keyboard { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee; }
         .kb-btn { background: white; border: 1px solid #ddd; border-radius: 8px; width: 44px; height: 46px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; font-weight: 500; transition: 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .kb-btn:active { background: var(--accent); color: white; transform: translateY(2px); box-shadow: none; }
-
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
         .btn { color: white; border: none; padding: 18px; border-radius: 12px; font-size: 18px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .btn-full { grid-column: span 2; width: 100%; }
@@ -59,37 +38,30 @@
         .btn-article { background: var(--article); }
         .btn-mistakes { background: white; color: #7f8c8d; border: 2px solid #ecf0f1; }
         .btn:active { transform: scale(0.98); box-shadow: none; }
-
         .quiz-input { width: 100%; padding: 16px; font-size: 26px; border: 2px solid var(--accent); border-radius: 10px; box-sizing: border-box; text-align: center; margin-top: 10px; outline: none; }
         .word-box { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: bold; color: var(--primary); margin: 10px 0; min-height: 140px; word-break: break-all; }
         .progress-bar { height: 8px; background: #eee; border-radius: 4px; margin: 10px auto 20px; width: 80%; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
         .audio-icon { font-size: 72px; cursor: pointer; color: var(--accent); margin: 15px 0; display: inline-block; transition: transform 0.2s; }
         .audio-icon:active { transform: scale(0.9); }
-
         .result-list { text-align: left; margin-top: 10px; padding: 0; list-style: none; max-height: 400px; overflow-y: auto; border-top: 1px solid #eee; }
         .result-item { padding: 15px 5px; border-bottom: 1px solid #eee; font-size: 18px; }
         .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .check-correct { color: var(--success); font-weight: bold; }
         .check-wrong { color: var(--error); font-weight: bold; }
-        
         .list-container { margin: 15px 0; overflow-y: auto; max-height: 380px; border: 1px solid #f0f0f0; border-radius: 10px; padding: 10px; }
         .list-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; background: #fff; text-align: left; font-size: 18px; }
         .list-row:last-child { border-bottom: none; }
         .list-row:nth-child(even) { background: #fafafa; }
-        
         .m-word { font-weight: 600; color: var(--primary); flex: 1; margin-right: 10px; word-break: break-all; display: flex; align-items: center; gap: 10px;}
         .m-actions { display: flex; gap: 10px; }
         .action-btn { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; }
         .btn-edit { background: #e0f2fe; color: #0284c7; }
         .btn-del { background: #fee2e2; color: #ef4444; }
-        
         input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
         .mistake-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; font-size: 16px; color: #666; font-weight: bold; }
-
         .read-play-btn { font-size: 28px; cursor: pointer; background: none; border: none; padding: 0 10px; color: var(--read); transition: transform 0.2s; }
         .read-play-btn:active { transform: scale(0.8); }
-
         .article-box { text-align: left; font-size: 20px; line-height: 1.8; color: #444; padding: 15px; border-radius: 10px; background: #fff; border: 1px solid #eee; overflow-y: auto; max-height: 400px; margin-bottom: 15px; transition: 0.3s; }
         .article-sentence { transition: all 0.2s; border-radius: 4px; }
         .article-active { background-color: #e0f2fe; color: var(--accent); font-weight: bold; padding: 2px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -163,9 +135,7 @@
     <div id="article-view">
         <h2 style="color: var(--article);">📄 文章朗读</h2>
         <div class="mode-tag" style="margin-bottom: 10px;">逐句高亮追踪，可随时调整语速</div>
-        
         <div class="article-box" id="article-content"></div>
-        
         <div class="btn-group" style="margin-top: auto;">
             <button id="toggle-text-btn" class="btn btn-mistakes" onclick="toggleArticleText()">🙈 隐藏全文</button>
             <button id="play-article-btn" class="btn btn-article" onclick="toggleArticlePlay()">▶️ 开始朗读</button>
@@ -203,38 +173,27 @@
     let activeMode = 'dict'; 
     const synth = window.speechSynthesis;
     const frChars = ['é', 'è', 'ê', 'ë', 'à', 'â', 'î', 'ï', 'ô', 'û', 'ù', 'ç', 'œ', "'"];
-
     let articleSentences = [];
     let currentSentenceIndex = 0;
     let isArticlePlaying = false;
 
-    // 修改：生成无重复的随机数字
     function generateRandomNumbers() {
         const min = parseInt(document.getElementById('gen-min').value);
         const max = parseInt(document.getElementById('gen-max').value);
         const count = parseInt(document.getElementById('gen-count').value);
-
         if (isNaN(min) || isNaN(max) || isNaN(count)) return alert("请输入有效的数字！");
         if (min > max) return alert("最小值不能大于最大值！");
         if (count <= 0 || count > 1000) return alert("生成个数请控制在 1 到 1000 之间！");
-
         const range = max - min + 1;
-        // 增加判定：如果请求数量大于区间容量，给出提示
         if (count > range) return alert(`该区间最多只能生成 ${range} 个不重复的数字！`);
-
-        // 使用 Set 来保证数字不重复
         let resultSet = new Set();
         while (resultSet.size < count) {
             const randomNum = Math.floor(Math.random() * range) + min;
             resultSet.add(randomNum);
         }
-
-        // 将 Set 转回 Array，顺序自然是随机的
         let result = Array.from(resultSet);
-
         const textArea = document.getElementById('raw-text');
         textArea.value = result.join('\n');
-        
         textArea.style.borderColor = "#27ae60";
         setTimeout(() => textArea.style.borderColor = "#e0e0e0", 500);
     }
@@ -243,11 +202,9 @@
         let n = parseInt(num);
         if (isNaN(n) || n < 0) return null;
         if (n === 0) return "zéro";
-
         const units = ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf"];
         const teens = ["dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
         const tens = ["", "dix", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingt", "quatre-vingt-dix"];
-
         function convertSub100(val) {
             if (val < 10) return units[val];
             if (val < 20) return teens[val - 10];
@@ -263,7 +220,6 @@
             if (rem === 1) return strTen + " et un";
             return strTen + "-" + units[rem];
         }
-
         function convertSub1000(val) {
             if (val < 100) return convertSub100(val);
             let h = Math.floor(val / 100), r = val % 100;
@@ -272,37 +228,27 @@
             if (r === 0) return strH;
             return strH + " " + convertSub100(r);
         }
-
         if (n >= 100000000000) return "超出范围"; 
-        
-        let b = Math.floor(n / 1000000000);     // 十亿
+        let b = Math.floor(n / 1000000000);
         let remB = n % 1000000000;
-        let m = Math.floor(remB / 1000000);     // 百万
+        let m = Math.floor(remB / 1000000);
         let remM = remB % 1000000;
-        let k = Math.floor(remM / 1000);        // 千
-        let r = remM % 1000;                    // 百十个位
-
+        let k = Math.floor(remM / 1000);
+        let r = remM % 1000;
         let parts = [];
-
         if (b > 0) {
             if (b === 1) parts.push("un milliard");
             else parts.push(convertSub1000(b) + " milliards");
         }
-
         if (m > 0) {
             if (m === 1) parts.push("un million");
             else parts.push(convertSub1000(m) + " millions");
         }
-
         if (k > 0) {
             if (k === 1) parts.push("mille");
             else parts.push(convertSub1000(k).replace(/vingts$/, "vingt").replace(/cents$/, "cent") + " mille");
         }
-
-        if (r > 0) {
-            parts.push(convertSub1000(r));
-        }
-
+        if (r > 0) parts.push(convertSub1000(r));
         return parts.join(" ");
     }
 
@@ -312,7 +258,7 @@
     }
 
     function getTargetWord(text) {
-        const cleanText = text.replace(/\s/g, ''); 
+        const cleanText = text.replace(/\s/g, '');
         if (/^\d+$/.test(cleanText)) {
             const converted = numberToFrench(cleanText);
             if (converted) return converted;
@@ -320,19 +266,13 @@
         return text;
     }
 
-    // 新增：提取通用判断逻辑，同时支持匹配法语拼写和原数字
     function checkIsCorrect(userVal, originalWord, targetWord) {
         userVal = userVal || "";
-        // 1. 判断是否拼写出正确的法语
         if (cleanString(userVal) === cleanString(targetWord)) return true;
-        
-        // 2. 判断用户是否直接输入了对应的数字
-        const cleanOriginal = originalWord.replace(/\s/g, ''); // 去掉可能存在的空格
+        const cleanOriginal = originalWord.replace(/\s/g, '');
         if (/^\d+$/.test(cleanOriginal)) {
-            // 对比时去除用户输入可能带入的空格
             if (userVal.replace(/\s/g, '') === cleanOriginal) return true;
         }
-        
         return false;
     }
 
@@ -368,10 +308,8 @@
             synth.cancel();
             document.getElementById('play-article-btn').innerText = '▶️ 开始朗读';
         }
-
         const views = ['input-view', 'quiz-view', 'flash-view', 'result-view', 'mistake-view', 'read-view', 'article-view'];
         views.forEach(id => document.getElementById(id).style.display = 'none');
-        
         const target = document.getElementById(view + '-view');
         target.style.display = 'flex';
         target.style.flexDirection = 'column';
@@ -381,23 +319,18 @@
     function startArticleMode() {
         const text = document.getElementById('raw-text').value.trim();
         if (!text) return alert("请输入需要朗读的文章内容！");
-
         articleSentences = text.match(/[^.?!。？！\n]+[.?!。？！\n]*/g) || [text];
-        
         const container = document.getElementById('article-content');
         container.innerHTML = articleSentences.map((s, i) => {
             let formattedStr = s.replace(/\n/g, '<br>');
             return `<span id="sent-${i}" class="article-sentence">${formattedStr}</span>`;
         }).join('');
-        
         currentSentenceIndex = 0;
         isArticlePlaying = false;
         synth.cancel();
-        
         document.getElementById('article-content').style.display = 'block';
         document.getElementById('toggle-text-btn').innerText = '🙈 隐藏全文';
         document.getElementById('play-article-btn').innerText = '▶️ 开始朗读';
-        
         showView('article');
     }
 
@@ -410,7 +343,6 @@
             document.querySelectorAll('.article-sentence').forEach(el => el.classList.remove('article-active'));
             return;
         }
-
         document.querySelectorAll('.article-sentence').forEach(el => el.classList.remove('article-active'));
         const activeEl = document.getElementById(`sent-${currentSentenceIndex}`);
         if (activeEl) {
@@ -419,29 +351,18 @@
                 activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-
-        let textToRead = articleSentences[currentSentenceIndex].replace(/\n/g, ' '); 
+        let textToRead = articleSentences[currentSentenceIndex].replace(/\n/g, ' ');
         if (!textToRead.trim()) { 
             currentSentenceIndex++;
             playNextSentence();
             return;
         }
-
         const utter = new SpeechSynthesisUtterance(textToRead);
-        utter.lang = /[\u4e00-\u9fa5]/.test(textToRead) ? 'zh-CN' : 'fr-FR'; 
+        // 关键修复：强制 GitHub 环境识别法语 [cite: 371]
+        utter.lang = /[\u4e00-\u9fa5]/.test(textToRead) ? 'zh-CN' : 'fr-FR';
         utter.rate = getSpeechRate(); 
-        
-        utter.onend = () => {
-            currentSentenceIndex++;
-            playNextSentence();
-        };
-        
-        utter.onerror = (e) => {
-            console.error("Speech error", e);
-            currentSentenceIndex++;
-            playNextSentence();
-        };
-
+        utter.onend = () => { currentSentenceIndex++; playNextSentence(); };
+        utter.onerror = (e) => { console.error("Speech error", e); currentSentenceIndex++; playNextSentence(); };
         synth.speak(utter);
     }
 
@@ -449,7 +370,7 @@
         const btn = document.getElementById('play-article-btn');
         if (isArticlePlaying) {
             isArticlePlaying = false;
-            synth.cancel(); 
+            synth.cancel();
             btn.innerText = '▶️ 继续朗读';
         } else {
             isArticlePlaying = true;
@@ -480,16 +401,12 @@
         } else if (source === 'selected') {
             pool = [...customPool];
         }
-
         if (!pool.length) return alert("内容为空，无法开始");
-        
         activeMode = mode;
         if (mode !== 'read') pool.sort(() => Math.random() - 0.5);
-        
         current = 0;
         userAnswers = [];
         showView(mode === 'dict' ? 'quiz' : (mode === 'flash' ? 'flash' : 'read'));
-        
         if (mode === 'dict') renderQuiz();
         else if (mode === 'flash') renderFlash();
         else renderRead();
@@ -527,10 +444,7 @@
         userAnswers.push(val);
         const originalWord = pool[current];
         const targetWord = getTargetWord(originalWord); 
-        
-        // 使用新提取的校验逻辑判断对错
         const isCorrect = checkIsCorrect(val, originalWord, targetWord);
-
         if (!isCorrect && !mistakes.includes(originalWord)) {
             mistakes.push(originalWord);
             saveData();
@@ -580,6 +494,7 @@
             if (frNum) frWord = frNum;
         }
         const utter = new SpeechSynthesisUtterance(frWord);
+        // 关键修复：词汇朗读模式强制法语 [cite: 405]
         utter.lang = 'fr-FR';
         utter.rate = getSpeechRate();
         synth.speak(utter);
@@ -590,19 +505,14 @@
         const listEl = document.getElementById('final-list');
         const titleEl = document.getElementById('result-title');
         const scoreEl = document.getElementById('score-display');
-        
         if (activeMode === 'dict') {
             titleEl.innerText = "🎯 听写报告";
             let correct = 0;
             listEl.innerHTML = pool.map((word, i) => {
                 const targetWord = getTargetWord(word); 
-                
-                // 报告页面也需要应用双重判定规则
                 const isCorrect = checkIsCorrect(userAnswers[i], word, targetWord);
-                
                 if (isCorrect) correct++;
                 const displayWord = (word !== targetWord) ? `${word} (${targetWord})` : word;
-
                 return `<li class="result-item">
                     <div class="res-row"><b>${displayWord}</b> <span class="${isCorrect?'check-correct':'check-wrong'}">${isCorrect?'✔':'✘'}</span></div>
                     ${!isCorrect ? `<div style="color:var(--error); font-size:15px; margin-top:5px;">你的拼写: ${userAnswers[i]||'(空)'} <br>正确拼写: <b>${targetWord}</b></div>` : ''}
@@ -627,14 +537,13 @@
         synth.cancel();
         let word = pool[current];
         if(!word) return;
-
         let cleanWord = word.replace(/\s/g, '');
         if (/^\d+$/.test(cleanWord)) {
             const frNum = numberToFrench(cleanWord);
             if (frNum) word = frNum;
         }
-
         const utter = new SpeechSynthesisUtterance(word);
+        // 关键修复：强制 GitHub 环境识别法语 [cite: 418]
         utter.lang = /[\u4e00-\u9fa5]/.test(word) ? 'zh-CN' : 'fr-FR';
         utter.rate = getSpeechRate();
         synth.speak(utter);
@@ -656,12 +565,10 @@
         showView('mistake');
         const container = document.getElementById('mistake-container');
         document.getElementById('select-all-mistakes').checked = true; 
-        
         if (!mistakes.length) {
             container.innerHTML = "<div style='color:#ccc; padding:50px; text-align:center; font-size:18px;'>暂无错题，继续加油！</div>";
             return;
         }
-        
         container.innerHTML = mistakes.map((m, idx) => `
             <div class="list-row">
                 <label class="m-word">
@@ -703,19 +610,9 @@
     document.addEventListener('keydown', (e) => {
         const isQuiz = document.getElementById('quiz-view').style.display === 'flex';
         const isFlash = document.getElementById('flash-view').style.display === 'flex';
-        
-        if (isQuiz && e.code === 'Space' && e.ctrlKey) { 
-            e.preventDefault(); 
-            playSound(); 
-        }
-        
-        if (isFlash && e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            submitFlash(); 
-        }
+        if (isQuiz && e.code === 'Space' && e.ctrlKey) { e.preventDefault(); playSound(); }
+        if (isFlash && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); submitFlash(); }
     });
-
     loadData();
     initKeyboards();
 </script>
